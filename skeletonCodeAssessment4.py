@@ -1,91 +1,66 @@
 import random
 import matplotlib.pyplot as plt
 
-# Adjusted patient database with mathematically accurate language preferences
-num_patients = 50
-language_distribution = {
-    "Tamil": 16,  # 32%
-    "Telugu": 10,  # 20%
-    "Malayalam": 8,  # 16%
-    "Hindi": 8,  # 16%
-    "English": 8   # 16%
-}
+# Sample patient database with language and preferred communication channel
+patients = [
+    {"id": 1, "name": "Ravi Kumar", "language": "Tamil", "channel": "SMS"},
+    {"id": 2, "name": "Ananya Rao", "language": "Telugu", "channel": "WhatsApp"},
+    {"id": 3, "name": "Joseph Mathew", "language": "Malayalam", "channel": "IVR"},
+    {"id": 4, "name": "Rahul Sharma", "language": "Hindi", "channel": "SMS"},
+    {"id": 5, "name": "David Thomas", "language": "English", "channel": "WhatsApp"},
+]
 
-patients = []
-id_counter = 1
-for lang, count in language_distribution.items():
-    for _ in range(count):
-        patients.append({"id": id_counter, "name": f"Patient_{id_counter}", "language": lang, "channel": random.choice(["SMS", "IVR", "WhatsApp"])})
-        id_counter += 1
-
-# Language-specific message templates
+# Predefined multi-language messages
 messages = {
-   "Tamil": "உங்கள் நேரம் உறுதிசெய்யப்பட்டது. தயவுசெய்து வருக!",
+    "Tamil": "உங்கள் நேரம் உறுதிசெய்யப்பட்டது. தயவுசெய்து வருக!",
     "Telugu": "మీ నియామకం నిర్ధారించబడింది. దయచేసి రండి!",
     "Malayalam": "നിങ്ങളുടെ അപോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചിരിക്കുന്നു. ദയവായി വരൂ!",
     "Hindi": "आपका अपॉइंटमेंट कन्फर्म हो गया है। कृपया आएं!",
     "English": "Your appointment is confirmed. Please visit!"
 }
 
-# Track messages sent
-sent_logs = []
-
-# Defined confirmation probabilities per language
-confirmation_rates = {
-    "Tamil": 0.32,  # 32%
-    "Telugu": 0.20,  # 20%
-    "Malayalam": 0.16,  # 16%
-    "Hindi": 0.16,  # 16%
-    "English": 0.16,  # 16%
+# Probabilities for confirmation based on language
+confirmation_probabilities = {
+    "Tamil": 0.4,
+    "Telugu": 0.2,
+    "Malayalam": 0.1,
+    "Hindi": 0.2,
+    "English": 0.1
 }
 
-
-def get_best_channel(patient):
-    return patient.get("channel", "SMS")
-
-# Function to send message
 def send_message(patient):
+    """Simulate sending a message based on patient language and preferred channel"""
     language = patient["language"]
-    message = messages.get(language, messages["English"])
-    channel = get_best_channel(patient)
-    log_entry = f"Sending via {channel}: {message} (To: {patient['name']})"
-    sent_logs.append(log_entry)
-    print(log_entry)
+    message = messages.get(language, messages["English"])  # Default to English if language not found
+    channel = patient["channel"]
+    print(f"📩 Sending via {channel} to {patient['name']} ({language}): {message}")
 
-# AI-based confirmation tracking
-def track_confirmations():
-    confirmed = {lang: 0 for lang in messages.keys()}
-    total_sent = {lang: 0 for lang in messages.keys()}
-    
-    for patient in patients:
-        send_message(patient)
-        lang = patient['language']
-        total_sent[lang] += 1
-        
-        # Use predefined confirmation rate per language
-        if random.uniform(0, 1) < confirmation_rates[lang]:
-            confirmed[lang] += 1
-    
-    print("\nConfirmation Rates:")
-    for lang in confirmed:
-        if total_sent[lang] > 0:
-            rate = (confirmed[lang] / total_sent[lang]) * 100
-            print(f"{lang}: {rate:.2f}%")
-    
+# Simulating message sending to all patients
+for patient in patients:
+    send_message(patient)
+
+# Effectiveness simulation: track confirmations
+def measure_effectiveness():
+    """Simulates confirmation tracking based on language probability and visualizes it"""
+    confirmations = [
+        1 if random.random() < confirmation_probabilities[patient["language"]] else 0
+        for patient in patients
+    ]
+
+    confirmed_count = sum(confirmations)
+    confirmation_rate = (confirmed_count / len(patients)) * 100
+
+    print(f"✅ Confirmation Rate: {confirmation_rate:.2f}%")
+
     # Visualization
-    visualize_confirmations(confirmed, total_sent)
+    names = [p["name"] for p in patients]
+    colors = ['green' if c else 'red' for c in confirmations]
 
-def visualize_confirmations(confirmed, total_sent):
-    languages = list(confirmed.keys())
-    rates = [(confirmed[lang] / total_sent[lang]) * 100 if total_sent[lang] > 0 else 0 for lang in languages]
-    
-    plt.figure(figsize=(8, 5))
-    plt.bar(languages, rates, color=["blue", "green", "red", "orange", "purple"])
-    plt.xlabel("Language")
-    plt.ylabel("Confirmation Rate (%)")
-    plt.title("Patient Confirmation Rates by Language")
-    plt.ylim(0, 100)
+    plt.bar(names, confirmations, color=colors)
+    plt.xlabel("Patients")
+    plt.ylabel("Confirmation (1 = Yes, 0 = No)")
+    plt.title("Appointment Confirmations Based on Language Preference")
+    plt.ylim(0, 1)
     plt.show()
 
-# Run the simulation
-track_confirmations()
+measure_effectiveness()
